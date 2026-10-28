@@ -1,4 +1,4 @@
-const CACHE = "vax-app-v1";
+const CACHE = "vax-app-v2";
 const ASSETS = [
   "./", "./index.html", "./manifest.webmanifest",
   "./icons/logo.jpg", "./icons/logo-wide.jpg", "./icons/icon-192.png", "./icons/icon-512.png",
