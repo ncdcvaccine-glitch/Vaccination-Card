@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="theme-color" content="#0D2B4E">
 <meta name="description" content="سجل التطعيمات الوطني — المركز الوطني لمكافحة الأمراض، ليبيا">
+<script>window.__dip=null;window.__onDip=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__dip=e;if(window.__onDip)window.__onDip();});</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/favicon.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -335,17 +336,34 @@ if("serviceWorker" in navigator){window.addEventListener("load",function(){navig
 var deferredPrompt=null;
 function isStandalone(){return (window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;}
 function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);}
+function isInApp(){return /FBAN|FBAV|Instagram|WhatsApp|Line\/|Telegram|Snapchat|; wv\)/i.test(navigator.userAgent);}
 function showInst(){if(!isStandalone())document.getElementById("instbtn").style.display="flex";}
-window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredPrompt=e;showInst();});
-window.addEventListener("appinstalled",function(){deferredPrompt=null;document.getElementById("instbtn").style.display="none";});
+function hideInst(){document.getElementById("instbtn").style.display="none";}
+window.addEventListener("appinstalled",function(){window.__dip=null;hideInst();});
 showInst();
+function instMsg(h){document.getElementById("iosmsg").innerHTML=h;document.getElementById("iosmodal").classList.add("on");}
+function runPrompt(e){
+  e.prompt();
+  e.userChoice.then(function(c){window.__dip=null;if(c&&c.outcome==="accepted")hideInst();});
+}
 function doInstall(){
-  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(){deferredPrompt=null;});return;}
-  var m=document.getElementById("iosmsg");
-  m.innerHTML=isIOS()
-    ?"١) اضغط زر المشاركة <b>⬆︎</b> في أسفل متصفح Safari.<br>٢) اختر <b>«إضافة إلى الشاشة الرئيسية»</b>.<br>٣) اضغط <b>«إضافة»</b>."
-    :"١) افتح قائمة المتصفح <b>⋮</b>.<br>٢) اختر <b>«تثبيت التطبيق»</b> أو <b>«إضافة إلى الشاشة الرئيسية»</b>.";
-  document.getElementById("iosmodal").classList.add("on");
+  if(window.__dip){runPrompt(window.__dip);return;}
+  if(isIOS()){
+    instMsg("١) اضغط زر المشاركة <b>⬆︎</b> في أسفل متصفح Safari.<br>٢) اختر <b>«إضافة إلى الشاشة الرئيسية»</b>.<br>٣) اضغط <b>«إضافة»</b>.");
+    return;
+  }
+  if(isInApp()){
+    instMsg("أنت تفتح الرابط داخل متصفح مدمج (واتساب/فيسبوك...).<br>افتح الرابط في <b>Chrome</b> ثم اضغط «تثبيت التطبيق».");
+    return;
+  }
+  /* لم يصل حدث التثبيت بعد: ننتظر ثانيتين ثم نثبّت تلقائياً */
+  var btn=document.getElementById("instbtn");btn.disabled=true;
+  window.__onDip=function(){window.__onDip=null;btn.disabled=false;if(window.__dip)runPrompt(window.__dip);};
+  setTimeout(function(){
+    if(window.__dip||!btn.disabled)return;
+    window.__onDip=null;btn.disabled=false;
+    instMsg("افتح قائمة المتصفح <b>⋮</b> ثم اختر <b>«تثبيت التطبيق»</b> أو <b>«إضافة إلى الشاشة الرئيسية»</b>.<br><small>إن كان التطبيق مثبّتاً مسبقاً فافتحه من شاشة هاتفك.</small>");
+  },2000);
 }
 </script>
 
